@@ -24,8 +24,7 @@ set -e
 . /etc/default/openmediavault
 . /usr/share/openmediavault/scripts/helper-functions
 
-ARIA2_CONFIG_DIR="/etc/aria2"
-ARIA2_CONFIG="${ARIA2_CONFIG_DIR}/aria2.conf"
+ARIA2_CONFIG="/etc/aria2.conf"
 ARIA2_MAX_CONCURRENT_DOWNLOADS=${ARIA2_MAX_CONCURRENT_DOWNLOADS:-"3"}
 ARIA2_CONTINUE=${ARIA2_CONTINUE:-"true"}
 ARIA2_MAX_CONNECTION_PER_SERVER=${ARIA2_MAX_CONNECTION_PER_SERVER:-"5"}
@@ -33,10 +32,6 @@ ARIA2_MIN_SPLIT_SIZE=${ARIA2_MIN_SPLIT_SIZE:-"10M"}
 ARIA2_SPLIT=${ARIA2_SPLIT:-"5"}
 ARIA2_DIR=${ARIA2_DIR:-"$(omv_config_get //services/aria2/dir)"}
 ARIA2_FILE_ALLOCATION=${ARIA2_FILE_ALLOCATION:-"falloc"}
-
-if [ ! -d "${ARIA2_CONFIG_DIR}" ]; then
-    mkdir -p "${ARIA2_CONFIG_DIR}"
-fi
 
 xmlstarlet sel -t -m "//services/aria2" \
     -o "max-concurrent-downloads=$(omv_config_get //services/aria2/max-concurrent-downloads)" -n \
