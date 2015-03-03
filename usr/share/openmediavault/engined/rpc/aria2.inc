@@ -111,7 +111,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 				    "dir":{'.$GLOBALS['OMV_JSONSCHEMA_UUID_NONE'].'},
 					"split":{ "type": "integer", "minimum": 1 },
                     "max-connection-per-server":{"type":"integer"},
-                    "max-concurrent-download":{"type":"integer"}
+                    "max-concurrent-downloads":{"type":"integer"}
 				}
 			}'
 		);
@@ -127,7 +127,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 			"split" => $params["split"],
             "dir" => $params["dir"],
             "max-connection-per-server" => $params["max-connection-per-server"],
-            "max-concurrent-download" => $params["max-concurrent-download"],
+            "max-concurrent-downloads" => $params["max-concurrent-downloads"],
 		));
 		
 		// Update the configuration file. If it fails it throws an exception.

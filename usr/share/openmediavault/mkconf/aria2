@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+# This file is part of OpenMediaVault.
+#
+# @license   http://www.gnu.org/licenses/gpl.html GPL Version 3
+# @author    Volker Theile <volker.theile@openmediavault.org>
+# @copyright Copyright (c) 2009-2015 Volker Theile
+#
+# OpenMediaVault is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# OpenMediaVault is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with OpenMediaVault. If not, see <http://www.gnu.org/licenses/>.
+
+set -e
+
+. /etc/default/openmediavault
+. /usr/share/openmediavault/scripts/helper-functions
+
+ARIA2_CONFIG_DIR="/etc/aria2"
+ARIA2_CONFIG="${ARIA2_CONFIG_DIR}/aria2.conf"
+ARIA2_MAX_CONCURRENT_DOWNLOADS=${ARIA2_MAX_CONCURRENT_DOWNLOADS:-"3"}
+ARIA2_CONTINUE=${ARIA2_CONTINUE:-"true"}
+ARIA2_MAX_CONNECTION_PER_SERVER=${ARIA2_MAX_CONNECTION_PER_SERVER:-"5"}
+ARIA2_MIN_SPLIT_SIZE=${ARIA2_MIN_SPLIT_SIZE:-"10M"}
+ARIA2_SPLIT=${ARIA2_SPLIT:-"5"}
+ARIA2_DIR=${ARIA2_DIR:-"$(omv_config_get //services/aria2/dir)"}
+ARIA2_FILE_ALLOCATION=${ARIA2_FILE_ALLOCATION:-"falloc"}
+
+if [ ! -d "${ARIA2_CONFIG_DIR}" ]; then
+    mkdir -p "${ARIA2_CONFIG_DIR}"
+fi
+
+xmlstarlet sel -t -m "//services/aria2" \
+    -o "max-concurrent-downloads=$(omv_config_get //services/aria2/max-concurrent-downloads)" -n \
+    -o "continue=true" -n \
+    -o "max-connection-per-server=$(omv_config_get //services/aria2/max-connection-per-server)" -n \
+    -o "min-split-size=${ARIA2_MIN_SPLIT_SIZE}" -n \
+    -o "split=$(omv_config_get //services/aria2/split)" -n \
+    -o "dir=$(omv_get_sharedfolder_path ${ARIA2_DIR})" -n \
+    -o "enable-mmap=true" -n \
+    -o "file-allocation=${ARIA2_FILE_ALLOCATION}" -n \
+    -o "enable-rpc=true" -n \
+    -o "rpc-listen-all=true" -n \
+    -o "rpc-allow-origin-all=true" -n \
+    -o "log=/tmp/aria2.log" -n \
+    -o "log-level=warn" -n \
+    -b \
+    ${OMV_CONFIG_FILE} | xmlstarlet unesc > ${ARIA2_CONFIG}

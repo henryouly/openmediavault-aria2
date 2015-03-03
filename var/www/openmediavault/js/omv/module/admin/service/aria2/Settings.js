@@ -52,7 +52,7 @@ Ext.define("OMV.module.admin.service.aria2.Settings", {
 				}]
 			},{
                 xtype: "numberfield",
-                name: "max-concurrent-download",
+                name: "max-concurrent-downloads",
                 fieldLabel: _("Max concurrent download"),
                 minValue: 0,
                 maxValue: 10,
