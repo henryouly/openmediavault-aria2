@@ -45,7 +45,16 @@ xmlstarlet sel -t -m "//services/aria2" \
     -o "enable-rpc=true" -n \
     -o "rpc-listen-all=true" -n \
     -o "rpc-allow-origin-all=true" -n \
+    -o "disable-ipv6=true" -n \
     -o "log=/tmp/aria2.log" -n \
-    -o "log-level=warn" -n \
+    -o "log-level=info" -n \
     -b \
     ${OMV_CONFIG_FILE} | xmlstarlet unesc > ${ARIA2_CONFIG}
+
+if [ "$(omv_config_get //service/aria2/enable)" != "0" ]; then
+    invoke-rc.d aria2 start
+else
+    invoke-rc.d aria2 stop
+fi
+
+exit 0

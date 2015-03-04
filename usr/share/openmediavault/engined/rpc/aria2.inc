@@ -7,6 +7,74 @@ require_once("openmediavault/object.inc");
 require_once("openmediavault/rpcservice.inc");
 require_once("openmediavault/util.inc");
 
+class Aria2Rpc {
+    private $server;
+    private $ch;
+    function __construct($server='http://127.0.0.1:6800/jsonrpc'){
+        $this->server = $server;
+        $this->ch = curl_init($server);
+        curl_setopt_array($this->ch,array(
+            CURLOPT_POST=>true,
+            CURLOPT_RETURNTRANSFER=>true,
+            CURLOPT_HEADER=>false,
+        ));
+    }
+    function __destruct(){
+        curl_close($this->ch);
+    }
+    private function req($data){
+        curl_setopt($this->ch,CURLOPT_POSTFIELDS,$data);        
+        return curl_exec($this->ch);
+    }
+    function __call($name,$arg){
+        $data = array(
+            'jsonrpc'=>'2.0',
+            'id'=>'1',
+            'method'=>'aria2.'.$name,
+            'params'=>$arg,
+        );
+        $data = json_encode($data);
+        return json_decode($this->req($data),1);
+    }
+}
+
+class Aria2Server
+{
+    private $rpc;
+
+    public function connect($url)
+    {
+        $this->rpc = new Aria2Rpc($url);
+    }
+
+    public function getTasks()
+    {
+        $tasks = array();
+        $result = $this->rpc->tellActive();
+        foreach ($result['result'] as $res) {
+            $file = $res['files'][0];
+            $tasks[] = array(
+                "filename" => basename($file['path']),
+                "status" => $res['status'],
+                "total" => $res['totalLength'],
+                "completed" => $res['completedLength']
+            );
+        }
+
+        $result = $this->rpc->tellStopped(0, 1000);
+        foreach ($result['result'] as $res) {
+            $file = $res['files'][0];
+            $tasks[] = array(
+                "filename" => basename($file['path']),
+                "status" => $res['status'],
+                "total" => $res['totalLength'],
+                "completed" => $res['completedLength']
+            );
+        }
+        return $tasks;
+    }
+}
+
 class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 {
 	/**
@@ -51,6 +119,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 	{
 		$this->registerMethod("getSettings");
 		$this->registerMethod("setSettings");
+        $this->registerMethod("getTaskList");
 	}
 
 	public function getSettings($params, $context)
@@ -85,6 +154,8 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 		// and integer value.
 		$object["enable"] = boolval($object["enable"]);
 		$object["split"] = intval($object["split"]);
+        $object["max-connection-per-server"] = intval($object["max-connection-per-server"]);
+        $object["max-concurrent-downloads"] = intval($object["max-concurrent-downloads"]);
 		// Remove useless fields from the result object.
 		
 		return $object;
@@ -127,7 +198,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 			"split" => $params["split"],
             "dir" => $params["dir"],
             "max-connection-per-server" => $params["max-connection-per-server"],
-            "max-concurrent-downloads" => $params["max-concurrent-downloads"],
+            "max-concurrent-downloads" => $params["max-concurrent-downloads"]
 		));
 		
 		// Update the configuration file. If it fails it throws an exception.
@@ -152,6 +223,47 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 
 		return $object;
 	}
+
+    public function getTaskList($params, $context)
+    {
+        $this->validateMethodContext($context, array(
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ));
+
+        $server = $this->aria2RpcServer();
+        $tasks = array();
+        foreach ($server->getTasks() as $task) {
+            $tasks[] = array(
+                "filename" => $task['filename'],
+                "status" => $task['status'],
+                "percent" => 100.0 * intval($task['completed']) / intval($task['total']) . "%",
+                "eta" => "1:00:00"
+            );
+        }
+        return $tasks;
+    }
+
+    private function aria2RpcServer()
+    {
+        global $xmlConfig;
+
+        $object = $xmlConfig->get($this->getXpath());
+        if (is_null($object)) {
+            throw new OMVException(
+                OMVErrorMsg::E_CONFIG_GET_OBJECT_FAILED,
+                $this->getXpath()
+            );
+        }
+        $object["rpcport"] = 6800;
+        $object["rpcurl"] = "/jsonrpc";
+
+        $url = "http://192.168.30.139:" . $object["rpcport"] . $object["rpcurl"];
+
+        $server = new Aria2Server();
+        $server->connect($url);
+
+        return $server;
+    }
 }
 
 // Register the RPC service.
