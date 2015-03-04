@@ -77,18 +77,27 @@ class Aria2Server
                 "total" => $totalLength,
                 "completed" => $completedLength,
                 "percent" => intval(1000 * $completedLength / $totalLength) / 10 . "%",
-                "eta" => $this->toETATime($etaInSecond)
+                "eta" => $this->readableTime($etaInSecond),
+                "downloadSpeed" => $this->readableSpeed($downloadSpeed, 2)
             );
         }
         return $tasks;
     }
 
-    private function toETATime($seconds)
+    private function readableTime($seconds)
     {
         if ($seconds >= 86400) {
             return "> 1 day";
         }
         return gmdate("H:i:s", $seconds);
+    }
+
+    private function readableSpeed($speed, $round = 0)
+    {
+        if ($speed == 0) return "-";
+        $sizes = array('Bytes/s', 'KB/s', 'MB/s', 'GB/s');
+        for ($i = 0; $speed > 1024 && isset($sizes[$i + 1]); $i++) $speed /= 1024;
+        return round($speed, $round) . $sizes[$i];
     }
 
     public function addTask($url, $paused)
@@ -270,6 +279,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
                 "status" => $task['status'],
                 "percent" => $task['percent'],
                 "eta" => $task['eta'],
+                "downloadSpeed" => $task['downloadSpeed'],
             );
         }
         return $this->applyFilter(

@@ -37,6 +37,15 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
         resizable: false,
         align: "center"
     },{
+        text: _("Speed"),
+        sortable: false,
+        dataIndex: "downloadSpeed",
+        stateId: "downloadSpeed",
+        width: 80,
+        resizable: false,
+        align: "center"
+
+    },{
         text: _("ETA"),
         sortable: false,
         dataIndex: "eta",
@@ -58,7 +67,8 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
                         { name: "filename", type: "string" },
                         { name: "status", type: "string" },
                         { name: "percent", type: "string" },
-                        { name: "eta", type: "string" }
+                        { name: "eta", type: "string" },
+                        { name: "downloadSpeed", type: "string" }
                     ]
                 }),
                 proxy: {
