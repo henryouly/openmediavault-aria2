@@ -50,25 +50,27 @@ class Aria2Server
     public function getTasks()
     {
         $tasks = array();
-        $result = $this->rpc->tellActive();
-        foreach ($result['result'] as $res) {
-            $file = $res['files'][0];
-            $tasks[] = array(
-                "filename" => basename($file['path']),
-                "status" => $res['status'],
-                "total" => $res['totalLength'],
-                "completed" => $res['completedLength']
-            );
-        }
 
+        $result = $this->rpc->tellActive();
+        $tasks = array_merge($tasks, $this->parseTask($result));
+        $result = $this->rpc->tellWaiting(0, 1000);
+        $tasks = array_merge($tasks, $this->parseTask($result));
         $result = $this->rpc->tellStopped(0, 1000);
+        $tasks = array_merge($tasks, $this->parseTask($result));
+        return $tasks;
+    }
+
+    private function parseTask($result)
+    {
+        $tasks = array();
         foreach ($result['result'] as $res) {
             $file = $res['files'][0];
             $tasks[] = array(
                 "filename" => basename($file['path']),
                 "status" => $res['status'],
                 "total" => $res['totalLength'],
-                "completed" => $res['completedLength']
+                "completed" => $res['completedLength'],
+                "percent" => intval(1000 * $res['completedLength'] / $res['totalLength']) / 10 . "%"
             );
         }
         return $tasks;
@@ -127,6 +129,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         $this->registerMethod("setSettings");
         $this->registerMethod("getTaskList");
         $this->registerMethod("addTask");
+        $this->registerMethod("deleteTask");
     }
 
     public function getSettings($params, $context)
@@ -243,7 +246,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
             $tasks[] = array(
                 "filename" => $task['filename'],
                 "status" => $task['status'],
-                "percent" => 100.0 * intval($task['completed']) / intval($task['total']) . "%",
+                "percent" => $task['percent'],
                 "eta" => "1:00:00"
             );
         }
@@ -259,8 +262,19 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         $server = $this->aria2RpcServer();
         $url = $params["url"];
         $paused = !boolval($params["start_download"]);
-
         return $server->addTask($url, $paused);
+    }
+
+    public function deleteTask($params, $context)
+    {
+        $this->validateMethodContext($context, array(
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ));
+
+        $server = $this->aria2RpcServer();
+        $gid = $params["id"];
+        $deleteLocalData = boolval($params["delete_local_data"]);
+        $server->remove($gid);
     }
 
     private function aria2RpcServer()

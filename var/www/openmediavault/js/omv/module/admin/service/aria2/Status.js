@@ -8,10 +8,10 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
     ],
     hideAddButton: false,
     hideEditButton: true,
-    hideDeleteButton: true,
+    hideDeleteButton: false,
     hideRefreshButton: false,
     hidePagingToolbar: true,
-    disableSelection: true,
+    disableSelection: false,
     stateful: true,
     stateId: "43c44e0a-ad79-4d9f-bf7b-4fdccabdd709",
     columns: [{
@@ -74,18 +74,48 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
     },
 
 	onAddButton: function() {
-		var me = this;
 		Ext.create("OMV.module.admin.service.aria2.AddTask", {
 			title: _("Add download task"),
-			uuid: OMV.UUID_UNDEFINED,
 			listeners: {
-				scope: me,
+				scope: this,
 				submit: function() {
 					this.doReload();
 				}
 			}
 		}).show();
-	}
+	},
+
+    onDeleteButton: function() {
+        var records = this.getSelection();
+		Ext.create("OMV.module.admin.service.aria2.DeleteTask", {
+            listeners: {
+                scope: this,
+                submit: function(id, values) {
+                    // Add delete_local_data to each item
+                    Ext.Array.forEach(records, function(record) {
+                        record.delete_local_data = values.delete_local_data;
+                    });
+
+                    this.startDeletion(records);
+                }
+            }
+        }).show();
+    },
+
+    doDeletion: function(record) {
+        OMV.Rpc.request({
+            scope: this,
+            callback: this.onDeletion,
+            rpcData: {
+                service: "Aria2",
+                method: "deleteTask",
+                params: {
+                    id: record.get("id"),
+                    delete_local_data: record.delete_local_data
+                }
+            }
+        });
+    }
 });
 
 /**
@@ -121,6 +151,34 @@ Ext.define("OMV.module.admin.service.aria2.AddTask", {
         if (this.isValid()) {
             this.doSubmit();
         }
+    }
+});
+
+/**
+ * @class OMV.module.admin.service.aria2.DeleteTask
+ * @derived OMV.workspace.window.Form
+ */
+Ext.define("OMV.module.admin.service.aria2.DeleteTask", {
+	extend: "OMV.workspace.window.Form",
+
+    hideResetButton: true,
+    width: 500,
+    title: _("Delete download"),
+    okButtonText: _("OK"),
+    submitMsg: _("Deleting download ..."),
+    mode: "local",
+
+	getFormItems: function() {
+		return [{
+			xtype: "checkbox",
+			name: "delete_local_data",
+			fieldLabel: _("Delete Local Data"),
+            checked: false
+        }];
+	},
+
+    onOkButton: function() {
+        this.doSubmit();
     }
 });
 
