@@ -54,7 +54,7 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
                 model: OMV.data.Model.createImplicit({
                     idProperty: "uuid",
                     fields: [
-                        { name: "uuid", type: "string" },
+                        { name: "id", type: "string" },
                         { name: "filename", type: "string" },
                         { name: "status", type: "string" },
                         { name: "percent", type: "string" },
@@ -103,6 +103,7 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
     },
 
     doDeletion: function(record) {
+        console.debug('id = ' + record.get("id"));
         OMV.Rpc.request({
             scope: this,
             callback: this.onDeletion,

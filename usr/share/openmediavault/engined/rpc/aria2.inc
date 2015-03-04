@@ -65,20 +65,41 @@ class Aria2Server
         $tasks = array();
         foreach ($result['result'] as $res) {
             $file = $res['files'][0];
+            $downloadSpeed = intval($res['downloadSpeed']);
+            $completedLength = intval($res['completedLength']);
+            $totalLength = intval($res['totalLength']);
+            $etaInSecond = ($totalLength - $completedLength) / $downloadSpeed;
             $tasks[] = array(
+                "id" => $res['gid'],
                 "filename" => basename($file['path']),
+                // "filename" => $res['gid'],
                 "status" => $res['status'],
-                "total" => $res['totalLength'],
-                "completed" => $res['completedLength'],
-                "percent" => intval(1000 * $res['completedLength'] / $res['totalLength']) / 10 . "%"
+                "total" => $totalLength,
+                "completed" => $completedLength,
+                "percent" => intval(1000 * $completedLength / $totalLength) / 10 . "%",
+                "eta" => $this->toETATime($etaInSecond)
             );
         }
         return $tasks;
     }
 
+    private function toETATime($seconds)
+    {
+        if ($seconds >= 86400) {
+            return "> 1 day";
+        }
+        return gmdate("H:i:s", $seconds);
+    }
+
     public function addTask($url, $paused)
     {
         $result = $this->rpc->addUri(array($url), array('paused' => $paused));
+        return $result;
+    }
+
+    public function deleteTask($id, $deleteLocalData)
+    {
+        $result = $this->rpc->remove($id);
         return $result;
     }
 }
@@ -244,13 +265,20 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         $tasks = array();
         foreach ($server->getTasks() as $task) {
             $tasks[] = array(
+                "id" => $task['id'],
                 "filename" => $task['filename'],
                 "status" => $task['status'],
                 "percent" => $task['percent'],
-                "eta" => "1:00:00"
+                "eta" => $task['eta'],
             );
         }
-        return $tasks;
+        return $this->applyFilter(
+            $tasks,
+            $params["start"],
+            $params["limit"],
+            $params["sortfield"],
+            $params["sortdir"]
+        );
     }
 
     public function addTask($params, $context)
@@ -272,9 +300,9 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         ));
 
         $server = $this->aria2RpcServer();
-        $gid = $params["id"];
+        $id = $params["id"];
         $deleteLocalData = boolval($params["delete_local_data"]);
-        $server->remove($gid);
+        $server->deleteTask($id);
     }
 
     private function aria2RpcServer()
