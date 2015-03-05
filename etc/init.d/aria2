@@ -14,46 +14,54 @@
 USER="root"
 DAEMON=/usr/bin/aria2c
 CONF=/etc/aria2.conf
+
+init() {
+    if [ ! -f /var/cache/aria2/session.lock ]; then
+        mkdir -p /var/cache/aria2
+        touch /var/cache/aria2/session.lock
+    fi
+}
  
 start() {
-if [ -f $CONF ]; then
-echo "Starting aria2 daemon"
-start-stop-daemon -S -c $USER -x $DAEMON -- -D --enable-rpc --conf-path=$CONF
-else
-echo "Couldn't start aria2 daemon for $USER (no $CONF found)"
-fi
+    init
+    if [ -f $CONF ]; then
+        echo "Starting aria2 daemon"
+        start-stop-daemon -S -c $USER -x $DAEMON -- -D --enable-rpc --conf-path=$CONF
+    else
+        echo "Couldn't start aria2 daemon for $USER (no $CONF found)"
+    fi
 }
  
 stop() {
-start-stop-daemon -o -c $USER -K -u $USER -x $DAEMON
+    start-stop-daemon -o -c $USER -K -u $USER -x $DAEMON
 }
  
 status() {
-dbpid=`pgrep -fu $USER $DAEMON`
-if [ -z "$dbpid" ]; then
-echo "aria2c daemon for USER $btsuser: not running."
-else
-echo "aria2c daemon for USER $btsuser: running (pid $dbpid)"
-fi
+    dbpid=`pgrep -fu $USER $DAEMON`
+    if [ -z "$dbpid" ]; then
+        echo "aria2c daemon for USER $btsuser: not running."
+    else
+        echo "aria2c daemon for USER $btsuser: running (pid $dbpid)"
+    fi
 }
  
 case "$1" in
-start)
-start
-;;
-stop)
-stop
-;;
-restart|reload|force-reload)
-stop
-start
-;;
-status)
-status
-;;
-*)
-echo "Usage: /etc/init.d/aria2 {start|stop|reload|force-reload|restart|status}"
-exit 1
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|reload|force-reload)
+        stop
+        start
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo "Usage: /etc/init.d/aria2 {start|stop|reload|force-reload|restart|status}"
+        exit 1
 esac
  
 exit 0

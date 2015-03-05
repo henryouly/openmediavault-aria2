@@ -42,6 +42,8 @@ xmlstarlet sel -t -m "//services/aria2" \
     -o "dir=$(omv_get_sharedfolder_path ${ARIA2_DIR})" -n \
     -o "enable-mmap=true" -n \
     -o "file-allocation=${ARIA2_FILE_ALLOCATION}" -n \
+    -o "input-file=/var/cache/aria2/session.lock" -n \
+    -o "save-session=/var/cache/aria2/session.lock" -n \
     -o "enable-rpc=true" -n \
     -o "rpc-listen-all=true" -n \
     -o "rpc-allow-origin-all=true" -n \
