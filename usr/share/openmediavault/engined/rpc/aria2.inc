@@ -108,7 +108,7 @@ class Aria2Server
 
     public function deleteTask($id, $status, $deleteLocalData)
     {
-        if ($status === "complete" || $status === "error") {
+        if ($status === "complete" || $status === "error" || $status === "removed") {
             $result = $this->rpc->removeDownloadResult($id);
         } else {
             $result = $this->rpc->remove($id);
