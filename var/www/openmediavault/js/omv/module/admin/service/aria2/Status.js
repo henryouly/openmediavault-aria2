@@ -181,9 +181,35 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
     },
 
     onPauseButton: function() {
+        var record = this.getSelected();
+
+        OMV.Rpc.request({
+            scope: this,
+            callback: this.doReload,
+            rpcData: {
+                service: "Aria2",
+                method: "pauseTask",
+                params: {
+                    id: record.get("id")
+                }
+            }
+        });
     },
 
     onResumeButton: function() {
+        var record = this.getSelected();
+
+        OMV.Rpc.request({
+            scope: this,
+            callback: this.doReload,
+            rpcData: {
+                service: "Aria2",
+                method: "resumeTask",
+                params: {
+                    id: record.get("id")
+                }
+            }
+        });
     }
 });
 

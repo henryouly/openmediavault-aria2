@@ -111,6 +111,18 @@ class Aria2Server
         $result = $this->rpc->remove($id);
         return $result;
     }
+
+    public function pauseTask($id)
+    {
+        $result = $this->rpc->pause($id);
+        return $result;
+    }
+
+    public function resumeTask($id)
+    {
+        $result = $this->rpc->unpause($id);
+        return $result;
+    }
 }
 
 class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
@@ -160,6 +172,8 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         $this->registerMethod("getTaskList");
         $this->registerMethod("addTask");
         $this->registerMethod("deleteTask");
+        $this->registerMethod("pauseTask");
+        $this->registerMethod("resumeTask");
     }
 
     public function getSettings($params, $context)
@@ -312,7 +326,29 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         $server = $this->aria2RpcServer();
         $id = $params["id"];
         $deleteLocalData = boolval($params["delete_local_data"]);
-        return $server->deleteTask($id);
+        return $server->deleteTask($id, $deleteLocalData);
+    }
+
+    public function pauseTask($params, $context)
+    {
+        $this->validateMethodContext($context, array(
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ));
+
+        $server = $this->aria2RpcServer();
+        $id = $params["id"];
+        return $server->pauseTask($id);
+    }
+
+    public function resumeTask($params, $context)
+    {
+        $this->validateMethodContext($context, array(
+            "role" => OMV_ROLE_ADMINISTRATOR
+        ));
+
+        $server = $this->aria2RpcServer();
+        $id = $params["id"];
+        return $server->resumeTask($id);
     }
 
     private function aria2RpcServer()
