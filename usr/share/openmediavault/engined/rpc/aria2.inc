@@ -76,7 +76,7 @@ class Aria2Server
                 "status" => $res['status'],
                 "total" => $totalLength,
                 "completed" => $completedLength,
-                "percent" => intval(1000 * $completedLength / $totalLength) / 10 . "%",
+                "percent" => round(100.0 * $completedLength / $totalLength, 2) . "%",
                 "eta" => $this->readableTime($etaInSecond),
                 "downloadSpeed" => $this->readableSpeed($downloadSpeed, 2)
             );

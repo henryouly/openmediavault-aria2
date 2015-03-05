@@ -27,7 +27,7 @@ class OMVModuleAria2 extends OMVModuleServiceAbstract implements
 	 *
 	 * @return string
 	 */
-	private function getXpath()
+	private function getXPath()
 	{
 		return "/config/services/aria2";
 	}
@@ -58,6 +58,8 @@ class OMVModuleAria2 extends OMVModuleServiceAbstract implements
 				$this->getXPath()
 			);
 		}
+
+        $initd = new OMVSysVInitScript($this->getName());
 		
 		// Return the status of the service. This information is displayed
 		// under Diagnostics/Services.
@@ -65,7 +67,7 @@ class OMVModuleAria2 extends OMVModuleServiceAbstract implements
 			"name" => $this->getName(),
 			"title" => gettext("Aria2"),
 			"enabled" => boolval($object["enable"]),
-			"running" => false
+			"running" => ($initd->status() == 0)
 		);
 	}
 
@@ -85,7 +87,50 @@ class OMVModuleAria2 extends OMVModuleServiceAbstract implements
 				implode("\n", $output)
 			);
 		}
+
+        $object = $xmlConfig->get($this->getXPath());
+
+        if (is_null($object)) {
+            throw new OMVException(
+                OMVErrorMsg::E_CONFIG_GET_OBJECT_FAILED,
+                $this->getXPath()
+            );
+        }
+
+        if (!boolval($object["enable"])) {
+            return;
+        }
+
+        $initd = new OMVSysVInitScript($this->getName());
+        $initd->invoke("force-reload");
 	}
+
+    public function startService()
+    {
+        global $xmlConfig;
+
+        $object = $xmlConfig->get($this->getXPath());
+
+        if (is_null($object)) {
+            throw new OMVException(
+                OMVErrorMsg::E_CONFIG_GET_OBJECT_FAILED,
+                $this->getXPath()
+            );
+        }
+
+        if (!boolval($object["enable"])) {
+            return;
+        }
+
+        $initd = new OMVSysVInitScript($this->getName(), true);
+        $initd->exec();
+    }
+
+    public function stopService()
+    {
+        $initd = new OMVSysVInitScript($this->getName());
+        $initd->exec();
+    }
 
 	/**
 	 * Bind listeners.
