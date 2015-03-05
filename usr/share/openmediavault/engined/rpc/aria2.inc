@@ -106,9 +106,13 @@ class Aria2Server
         return $result;
     }
 
-    public function deleteTask($id, $deleteLocalData)
+    public function deleteTask($id, $status, $deleteLocalData)
     {
-        $result = $this->rpc->remove($id);
+        if ($status === "complete" || $status === "error") {
+            $result = $this->rpc->removeDownloadResult($id);
+        } else {
+            $result = $this->rpc->remove($id);
+        }
         return $result;
     }
 
@@ -325,8 +329,9 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
 
         $server = $this->aria2RpcServer();
         $id = $params["id"];
+        $status = $params["status"];
         $deleteLocalData = boolval($params["delete_local_data"]);
-        return $server->deleteTask($id, $deleteLocalData);
+        return $server->deleteTask($id, $status, $deleteLocalData);
     }
 
     public function pauseTask($params, $context)
@@ -364,8 +369,9 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         }
         $object["rpcport"] = 6800;
         $object["rpcurl"] = "/jsonrpc";
+        $server = "192.168.30.139";
 
-        $url = "http://192.168.30.139:" . $object["rpcport"] . $object["rpcurl"];
+        $url = "http://" . $server . ":" . $object["rpcport"] . $object["rpcurl"];
 
         $server = new Aria2Server();
         $server->connect($url);

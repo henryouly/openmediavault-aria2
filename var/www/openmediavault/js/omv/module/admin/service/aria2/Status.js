@@ -154,6 +154,7 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
 
     doDeletion: function(record) {
         console.debug('id = ' + record.get("id"));
+        console.debug('status = ' + record.get("status"));
         OMV.Rpc.request({
             scope: this,
             callback: this.onDeletion,
@@ -162,6 +163,7 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
                 method: "deleteTask",
                 params: {
                     id: record.get("id"),
+                    status: record.get("status"),
                     delete_local_data: record.delete_local_data
                 }
             }
@@ -174,7 +176,7 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
         if (status === "paused" && button.action === "resume") {
             return true;
         }
-        if (status === "active" && button.action === "pause") {
+        if ((status === "active" || status === "waiting") && button.action === "pause") {
             return true;
         }
         return false;
