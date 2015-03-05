@@ -6,14 +6,16 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
         "OMV.data.Model",
         "OMV.data.proxy.Rpc"
     ],
-    hideAddButton: false,
+    autoReload: true,
+    hidePagingToolbar: false,
     hideEditButton: true,
-    hideDeleteButton: false,
-    hideRefreshButton: false,
-    hidePagingToolbar: true,
-    disableSelection: false,
-    stateful: true,
-    stateId: "43c44e0a-ad79-4d9f-bf7b-4fdccabdd709",
+    rememberSelected: true,
+    disableLoadMaskOnLoad: true,
+    reloadInterval: 10000,
+
+    pauseButtonText: _("Pause"),
+    resumeButtonText: _("Resume"),
+    
     columns: [{
         text: _("File name"),
         sortable: true,
@@ -83,6 +85,44 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
         me.callParent(arguments);
     },
 
+    getTopToolbarItems: function() {
+        var items = this.callParent(arguments);
+
+        Ext.Array.push(items, [{
+            id: this.getId() + "-pause",
+            xtype: "button",
+            text: this.pauseButtonText,
+            icon: "images/pause.png",
+            iconCls: Ext.baseCSSPrefix + "btn-icon-16x16",
+            handler: Ext.Function.bind(this.onPauseButton, this),
+            disabled: true,
+            scope: this,
+            selectionConfig: {
+                minSelections: 1,
+                maxSelections: 1,
+                enabledFn: this.setStatusButtonEnabled
+            },
+            action: "pause"
+        },{
+            id: this.getId() + "-resume",
+            xtype: "button",
+            text: this.resumeButtonText,
+            icon: "images/play.png",
+            iconCls: Ext.baseCSSPrefix + "btn-icon-16x16",
+            handler: Ext.Function.bind(this.onResumeButton, this),
+            disabled: true,
+            scope: this,
+            selectionConfig: {
+                minSelections: 1,
+                maxSelections: 1,
+                enabledFn: this.setStatusButtonEnabled
+            },
+            action: "resume"
+        }]);
+
+        return items;
+    },
+
 	onAddButton: function() {
 		Ext.create("OMV.module.admin.service.aria2.AddTask", {
 			title: _("Add download task"),
@@ -126,6 +166,24 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
                 }
             }
         });
+    },
+
+    setStatusButtonEnabled: function(button, records) {
+        var record = records[0];
+        var status = record.get("status");
+        if (status === "pause" && button.action === "resume") {
+            return true;
+        }
+        if (status === "active" && button.action === "pause") {
+            return true;
+        }
+        return false;
+    },
+
+    onPauseButton: function() {
+    },
+
+    onResumeButton: function() {
     }
 });
 

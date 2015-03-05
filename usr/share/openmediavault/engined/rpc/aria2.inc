@@ -312,7 +312,7 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         $server = $this->aria2RpcServer();
         $id = $params["id"];
         $deleteLocalData = boolval($params["delete_local_data"]);
-        $server->deleteTask($id);
+        return $server->deleteTask($id);
     }
 
     private function aria2RpcServer()
