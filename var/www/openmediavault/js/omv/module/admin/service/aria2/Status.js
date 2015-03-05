@@ -171,7 +171,7 @@ Ext.define("OMV.module.admin.service.aria2.Status", {
     setStatusButtonEnabled: function(button, records) {
         var record = records[0];
         var status = record.get("status");
-        if (status === "pause" && button.action === "resume") {
+        if (status === "paused" && button.action === "resume") {
             return true;
         }
         if (status === "active" && button.action === "pause") {
