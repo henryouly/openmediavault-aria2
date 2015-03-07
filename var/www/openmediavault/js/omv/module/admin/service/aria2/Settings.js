@@ -40,7 +40,7 @@ Ext.define("OMV.module.admin.service.aria2.Settings", {
 			},{
                 xtype: "numberfield",
                 name: "max-connection-per-server",
-                fieldLabel: _("Max connection per server"),
+                fieldLabel: _("Max. connections per host"),
                 minValue: 0,
                 maxValue: 10,
                 allowDecimals: false,
@@ -48,12 +48,12 @@ Ext.define("OMV.module.admin.service.aria2.Settings", {
                 value: 5,
 				plugins: [{
 					ptype: "fieldinfo",
-					text: _("The maximum connection to each server.")
+					text: _("Maximum number of connections per IP (0 = unlimited).")
 				}]
 			},{
                 xtype: "numberfield",
                 name: "max-concurrent-downloads",
-                fieldLabel: _("Max concurrent download"),
+                fieldLabel: _("Max. clients"),
                 minValue: 0,
                 maxValue: 10,
                 allowDecimals: false,
@@ -61,7 +61,7 @@ Ext.define("OMV.module.admin.service.aria2.Settings", {
                 value: 3,
 				plugins: [{
 					ptype: "fieldinfo",
-					text: _("The maximum concurrent download connections.")
+					text: _("Maximum number of simultaneous clients.")
 				}]
 			},{
                 xtype: "numberfield",
