@@ -127,6 +127,14 @@ class Aria2Server
         $result = $this->rpc->unpause($id);
         return $result;
     }
+
+    public function deleteLocalFile($id)
+    {
+        $result = $this->rpc->getFiles($id);
+        foreach ($result['result'] as $file) {
+            unlink($file['path']);
+        }
+    }
 }
 
 class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
@@ -331,6 +339,9 @@ class OMVRpcServiceAria2 extends OMVRpcServiceAbstract
         $id = $params["id"];
         $status = $params["status"];
         $deleteLocalData = boolval($params["delete_local_data"]);
+        if ($deleteLocalData) {
+            $server->deleteLocalFile($id);
+        }
         return $server->deleteTask($id, $status, $deleteLocalData);
     }
 
