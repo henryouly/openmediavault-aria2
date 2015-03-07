@@ -42,6 +42,7 @@ mkconf() {
         -o "max-connection-per-server=$(omv_config_get //services/aria2/max-connection-per-server)" -n \
         -o "min-split-size=${ARIA2_MIN_SPLIT_SIZE}" -n \
         -o "split=$(omv_config_get //services/aria2/split)" -n \
+        -o "max-overall-download-limit=$(omv_config_get //services/aria2/max-overall-download-limit)K" -n \
         -o "dir=$(omv_get_sharedfolder_path ${ARIA2_DIR})" -n \
         -o "enable-mmap=true" -n \
         -o "file-allocation=${ARIA2_FILE_ALLOCATION}" -n \

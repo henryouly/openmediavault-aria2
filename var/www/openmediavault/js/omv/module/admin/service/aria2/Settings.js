@@ -76,6 +76,18 @@ Ext.define("OMV.module.admin.service.aria2.Settings", {
 					ptype: "fieldinfo",
 					text: _("The number of parts to split.")
 				}]
+			},{
+                xtype: "numberfield",
+                name: "max-overall-download-limit",
+                fieldLabel: _("Maximum download rate (KiB/s)"),
+                minValue: 0,
+                allowDecimals: false,
+                allowBlank: true,
+                value: 0,
+				plugins: [{
+					ptype: "fieldinfo",
+					text: _("0 KiB/s means unlimited.")
+				}]
             }]
         }];
     }
